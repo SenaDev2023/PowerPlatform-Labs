@@ -1,0 +1,58 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Text;
+using System.Threading.Tasks;
+using Microsoft.Xrm.Sdk;
+using Microsoft.Xrm.Sdk.Messages;
+using Microsoft.Xrm.Sdk.Query;
+
+
+namespace PluginCSCode
+{
+    public class PluginCSCode : IPlugin
+    {
+        public void Execute(IServiceProvider serviceProvider)
+        {
+            IPluginExecutionContext context = (IPluginExecutionContext)serviceProvider.GetService(typeof(IPluginExecutionContext));
+            ITracingService tracingService = (ITracingService)serviceProvider.GetService(typeof(ITracingService));
+            IOrganizationServiceFactory serviceFactory = (IOrganizationServiceFactory)serviceProvider.GetService(typeof(IOrganizationServiceFactory));
+            IOrganizationService service = serviceFactory.CreateOrganizationService(context.UserId);
+            var targetEntity = (Entity)context.InputParameters["Target"];
+
+              tracingService.Trace("Stage 1");
+            int StageNumber = 0;
+              tracingService.Trace("Stage {0}", ++StageNumber);
+
+            string currentAccountName = (string)targetEntity["name"]; // Account 45
+            string newAccountName = currentAccountName + " (Copy)";  // Account 45 (Copy)
+
+            var newAccount = new Entity("cr104_accountcopy");
+            newAccount["cr104_newcolumn"] = newAccountName;
+            newAccount["cr104_fax"] = "765-4321";
+          
+
+            var request = new CreateRequest() { Target = newAccount };
+            var response = (CreateResponse)service.Execute(request);
+            Guid accountID = response.id;
+
+            var existingAccountCopy = new Entity("cr104_accountcopy", accountID);
+            var updateAccountCopy = new Entity("cr104_accountcopy");
+            updateAccountCopy.Id = existingAccountCopy.Id;
+            updateAccountCopy["cr104_fax"] = "765-4322";
+            service.Update(updateAccountCopy);
+
+
+            //retrieve
+            var retrieveEntity = service.Retrieve("cr104_accountcopy", accountID, new ColumnSet("cr104_accountcopy", "cr104_fax"));
+        }
+
+    }    
+}
+
+  
+        
+    
+    
+    
