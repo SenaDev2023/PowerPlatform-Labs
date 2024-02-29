@@ -15,6 +15,10 @@ namespace PluginCustomActivation
         IOrganizationServiceFactory serviceFactory = (IOrganizationServiceFactory)serviceProvider.GetService(typeof(IOrganizationServiceFactory));
         IOrganizationService service = serviceFactory.CreateOrganizationService(context.UserId);
 
+        var request = new OrganizationRequest("cr258_myCustomAPI")  ["RequestParameter" ]  = "hi there";
+        var response = service.Execute((OrganizationRequest)request);
+        tracingService.Trace((string)response["ResponseParameter"]);
+
         }
     }
 }
